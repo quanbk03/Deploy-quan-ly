@@ -10,10 +10,9 @@ interface AssetTableProps {
     loading: boolean;
     type: 'overdue' | 'due_soon';
     siteId?: string;
-    onLockToggle?: (assetId: string, currentStatus: string) => void;
 }
 
-export const AssetTable: React.FC<AssetTableProps> = ({ assets, loading, type, siteId, onLockToggle }) => {
+export const AssetTable: React.FC<AssetTableProps> = ({ assets, loading, type, siteId }) => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [filterDeclared, setFilterDeclared] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');

@@ -472,7 +472,7 @@ function DocumentRow({
 // -------------------------------------------------------
 
 export const AssetDocumentSection: React.FC<Props> = ({
-    assetId, siteId, assetCode, declaredStatus,
+    assetId, siteId, declaredStatus,
     canUpload, canDelete,
     documents: initialDocs,
     onRefresh, addToast,

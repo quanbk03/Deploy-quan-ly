@@ -8,7 +8,6 @@ import { AssetTable } from '../components/dashboard/AssetTable';
 import { ToastContainer, useToast } from '../components/Toast';
 import { AlertTriangle, Clock, RefreshCw, Search, Filter } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
-import { supabase } from '../lib/supabase';
 import { useSearchParams } from 'react-router-dom';
 
 export const Overdue: React.FC = () => {
@@ -83,19 +82,6 @@ export const Overdue: React.FC = () => {
     const uniqueCategories = useMemo(() =>
         Array.from(new Set(assets.map(a => a.equipment_category || a.equipment_type))).filter(Boolean) as string[],
         [assets]);
-
-    const handleLockToggle = async (assetId: string, currentStatus: string) => {
-        const newStatus = currentStatus === 'locked' ? 'in_service' : 'locked';
-        const label = newStatus === 'locked' ? 'khóa' : 'mở khóa';
-        try {
-            const { error } = await supabase.from('assets').update({ status: newStatus }).eq('id', assetId);
-            if (error) throw error;
-            setAssets(prev => prev.map(a => a.id === assetId ? { ...a, status: newStatus as Asset['status'] } : a));
-            addToast(`Thiết bị đã được ${label} thành công!`, 'success');
-        } catch (err) {
-            addToast(`Lỗi ${label} thiết bị: ${(err as Error).message}`, 'error');
-        }
-    };
 
     const currentList = activeTab === 'overdue' ? overdueAssets : dueSoonAssets;
 
@@ -211,7 +197,6 @@ export const Overdue: React.FC = () => {
                         assets={currentList}
                         loading={loading}
                         siteId={selectedSiteId || undefined}
-                        onLockToggle={handleLockToggle}
                     />
                 )}
             </div>
