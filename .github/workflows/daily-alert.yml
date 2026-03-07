@@ -1,0 +1,53 @@
+# .github/workflows/daily-alert.yml
+# Trigger Edge Function send-alert-email mỗi ngày lúc 8:00 AM (GMT+7 = 01:00 UTC)
+#
+# Setup:
+# 1. GitHub → repo → Settings → Secrets → Actions:
+#    - SUPABASE_EDGE_FUNCTION_URL: https://<project-ref>.supabase.co/functions/v1/send-alert-email
+#    - CRON_SECRET: (giống giá trị set trong Supabase Edge Function Secrets)
+#
+# 2. Không cần thêm bất kỳ dependency nào.
+
+name: Daily HSE Alert Email
+
+on:
+  schedule:
+    # 8:00 AM GMT+7 = 01:00 UTC
+    - cron: '0 1 * * *'
+
+  # Cho phép trigger thủ công từ GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (true = không gửi email thật)'
+        required: false
+        default: 'false'
+
+jobs:
+  send-alert:
+    name: Send HSE Alert Emails
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Edge Function
+        run: |
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          
+          HTTP_STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            --max-time 60 \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"dryRun\": ${DRY_RUN}}" \
+            "${{ secrets.SUPABASE_EDGE_FUNCTION_URL }}")
+          
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response:"
+          cat /tmp/response.json
+          
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "❌ Edge Function failed with status $HTTP_STATUS"
+            exit 1
+          fi
+          
+          echo "✅ Alert emails sent successfully"
