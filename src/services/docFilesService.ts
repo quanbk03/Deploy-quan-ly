@@ -14,7 +14,7 @@ import type { AssetDocument } from '../types/database';
 // Types
 // -------------------------------------------------------
 
-export const STORAGE_BUCKET = 'equipment-docs';
+export const STORAGE_BUCKET = 'asset-documents';
 
 export const DOC_TYPES = [
     { value: 'certificate', label: 'Chứng nhận KĐ', color: 'emerald' },
@@ -125,7 +125,8 @@ export const docFilesService = {
         if (!user) return { success: false, error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' };
 
         const timestamp = Date.now();
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const safeName = file.name.replace(/[^a-zA-Z0-9.\u0080-\uFFFF_-]/g, '_');
+        // Upload path requested: site_id/asset_id/file_name Note: timestamp prefix added to avoid direct collisions
         const filePath = `${meta.siteId}/${meta.assetId}/${timestamp}_${safeName}`;
 
         try {

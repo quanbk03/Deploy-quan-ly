@@ -89,6 +89,21 @@ export const AssetDetail: React.FC = () => {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
+    const handleToggleLock = async () => {
+        if (!asset) return;
+        setActionLoading(true);
+        try {
+            const newStatus = asset.status === 'locked' ? 'in_service' : 'locked';
+            await assetsService.update(asset.id, { status: newStatus });
+            await fetchAssetDetails(assetCode!);
+            addToast(newStatus === 'locked' ? 'Đã khóa thiết bị thành công!' : 'Đã mở khóa thiết bị thành công!', 'success');
+        } catch (error) {
+            addToast(error instanceof Error ? error.message : String(error), 'error');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -150,6 +165,33 @@ export const AssetDetail: React.FC = () => {
                         </div>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">{asset.equipment_name}</h1>
                         <p className="text-gray-500 max-w-2xl text-sm leading-relaxed">{asset.description_raw || 'Chưa có mô tả'}</p>
+                    </div>
+
+                    {/* Lock/Unlock Button */}
+                    <div className="mt-4 md:mt-0">
+                        {canVerifyEvents && (
+                            <button
+                                onClick={handleToggleLock}
+                                disabled={actionLoading}
+                                className={`flex items-center justify-center px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 ${asset.status === 'locked'
+                                        ? 'bg-success-50 text-success-700 hover:bg-success-100 border border-success-200'
+                                        : 'bg-danger-50 text-danger-700 hover:bg-danger-100 border border-danger-200'
+                                    }`}
+                                title={asset.status === 'locked' ? "Mở khóa thiết bị" : "Khóa thiết bị (do quá hạn hoặc mất an toàn)"}
+                            >
+                                {actionLoading ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : asset.status === 'locked' ? (
+                                    <>
+                                        <CheckCircle className="w-4 h-4 mr-2" /> Mở khóa thiết bị
+                                    </>
+                                ) : (
+                                    <>
+                                        <ShieldAlert className="w-4 h-4 mr-2" /> Khóa thiết bị
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
